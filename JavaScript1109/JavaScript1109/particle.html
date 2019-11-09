@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<title>Particle System</title>
+</head>
+<body>
+    <h3>分子系統</h3>
+    <canvas id="cvs" width="800" height="600" style="border:1px solid black"></canvas>
+    <script>
+        // 設計方塊類別
+        class Rect{
+            //  定義建構函式
+            constructor(x, y){
+                this.x=x;
+                this.y=y;
+                this.vx=0;
+                this.vy=-4; // -(負號)往上飛
+                // this.vx=Math.random()*1.5+0.5; // 0.5 ~2
+                // this.vy=Math.random()*1; // 0 ~ 1
+            }
+            // 定義方法
+            update(){
+                this.x+=this.vx;
+                this.y+=this.vy;
+                this.vy+=0.01;
+                // 回傳 true 代表可以回收/刪除
+                return this.x>cvs.width || this.x<0 || this.y>cvs.height || this.y<0;
+                // return this.x>200; // 超過200回收           
+            }
+            draw(){
+                ctx.fillRect(this.x, this.y, 5, 5);
+            }
+        }
+        class Plane{
+            constructor(){
+                this.x=cvs.width/2;
+                this.y=cvs.height/2;
+                this.size=20;
+            }
+            update(){
+                if(key.space && circle%10==0){
+                    particles.push(new Rect(this.x, this.y-this.size/2));
+                }
+                let speed=2;
+                if(key.left){
+                    this.x-=speed;
+                }
+                if(key.right){
+                    this.x+=speed;
+                }
+                if(key.top){
+                    this.y-=speed;
+                }
+                if(key.bottom){
+                    this.y+=speed;
+                }
+                return false; // 不會死
+            }
+            draw(){
+                ctx.drawImage(planeImg,
+                    this.x-this.size/2, this.y-this.size/2,
+                    this.size, this.size
+                );
+            }
+        }
+
+
+        /*
+        // 建立一個方塊物件: new 類別名稱(參數)
+        let rect=new Rect(50, 50);
+        console.log(rect);
+        rect.update();
+        rect.draw();
+        let rect2=new Rect(100, 100);
+        rect2.draw();
+        */
+        
+        // 主程式
+        let cvs=document.querySelector("#cvs"); // 取得 canvas 標籤
+        let ctx=cvs.getContext("2d"); // 取得 canvas 對應的 context 物件
+        let circle=0; //回合
+        let particles=[new Plane()]; // 陣列: 用來裝會出現在畫面上的物件
+        function refresh(){
+            // particles.push(new Rect(50, 50));
+            // 更新資料
+            for(let i=0;i<particles.length;i++){
+                let isDead=particles[i].update();
+                if(isDead){
+                    particles.splice(i, 1);
+                    i--;    
+                }
+            }
+            // 清空畫面
+            ctx.clearRect(0, 0, cvs.width, cvs.height);
+            // 根據最新的資料重畫
+            for(let i=0;i<particles.length;i++){
+                particles[i].draw();
+            }
+            // 更新回合數
+            circle++;    
+        }
+        // 載入圖片後啟動遊戲
+        let planeImg=new Image();
+        planeImg.src="plane.png";
+        planeImg.addEventListener("load", function(){
+            window.setInterval(refresh, 10); // 啟動遊戲
+        });
+        // 加入鍵盤控制
+        let key={
+            left:false, top:false, right:false, bottom:false, space:false
+        };
+        document.addEventListener("keydown", function(e){
+            let code=e.keyCode;
+            if(code==37){ // left
+                key.left=true;
+            }else if(code==38){ // top
+                key.top=true;
+            }else if(code==39){ // right
+                key.right=true;
+            }else if(code==40){ // bottom
+                key.bottom=true;
+            }else if(code==32){
+                key.space=true;
+            }
+        });
+
+        document.addEventListener("keyup", function(e){
+            let code=e.keyCode;
+            if(code==37){ // left
+                key.left=false;
+            }else if(code==38){ // top
+                key.top=false;
+            }else if(code==39){ // right
+                key.right=false;
+            }else if(code==40){ // bottom
+                key.bottom=false;
+            }else if(code==32){
+                key.space=false;
+            }
+        });        
+    </script>
+</body>
+</html>
